@@ -1,4 +1,164 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import requests
 
+app = Flask(__name__)
+CORS(app)
+
+# ===== MULTI-LANGUAGE TRANSLATIONS =====
+translations = {
+    "welcome": {
+        "en": "Welcome to Smart Farming Flood & Weather Dashboard 🌾",
+        "ha": "Barka da zuwa dashboard ɗin noman zamani 🌾",
+        "yo": "Kaabo si dasibodu oko ọlọgbọn 🌾",
+        "ig": "Nnọọ na dashboard ugbo amamihe 🌾"
+    },
+    "desc": {
+        "en": "Monitor weather and flood indicators for your farming region.",
+        "ha": "Bi yanayin sama da alamar ambaliyar ruwa a yankin gonarka.",
+        "yo": "Ṣọ oju-ọjọ ati awọn itọkasi ìtànkálẹ omi fun agbegbe rẹ.",
+        "ig": "Lelee ihu igwe na ihe ngosi mmiri ozuzo maka mpaghara gị."
+    },
+    "check_weather": {
+        "en": "Check Weather",
+        "ha": "Duba Yanayi",
+        "yo": "Ṣayẹwo Oju-ọjọ",
+        "ig": "Lelee Ihu Igwe"
+    },
+    "check_flood": {
+        "en": "Check Flood",
+        "ha": "Duba Ambaliyar Ruwa",
+        "yo": "Ṣayẹwo Ìtànkálẹ Omi",
+        "ig": "Lelee Mmiri Ozuzo"
+    }
+}
+
+def t(key, lang="en"):
+    if key in translations:
+        return translations[key].get(lang, translations[key]["en"])
+    return key
+
+# ====== HOME (HTML FRONTEND DASHBOARD) ======
+@app.route("/")
+def home():
+    lang = request.args.get("lang", "en")
+    return f"""
+    <html>
+    <head>
+        <title>AgroGuard 🌾</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {{
+                font-family: 'Segoe UI', sans-serif;
+                background: #f4f8f3;
+                color: #333;
+                text-align: center;
+                padding: 30px;
+            }}
+            h1 {{ color: #2f7a32; }}
+            .lang-select {{
+                margin: 15px;
+            }}
+            .card {{
+                background: white;
+                border-radius: 12px;
+                padding: 20px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                margin: 20px auto;
+                width: 90%;
+                max-width: 450px;
+            }}
+            button {{
+                background-color: #2f7a32;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 16px;
+            }}
+            input {{
+                padding: 8px;
+                margin: 5px;
+                width: 80%;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }}
+        </style>
+    </head>
+    <body>
+        <h1>{t("welcome", lang)}</h1>
+        <p>{t("desc", lang)}</p>
+
+        <div class="lang-select">
+            <a href="/?lang=en">English</a> |
+            <a href="/?lang=ha">Hausa</a> |
+            <a href="/?lang=yo">Yoruba</a> |
+            <a href="/?lang=ig">Igbo</a>
+        </div>
+
+        <div class="card">
+            <h3>🌤️ {t("check_weather", lang)}</h3>
+            <input id="lat" placeholder="Latitude" />
+            <input id="lon" placeholder="Longitude" />
+            <button onclick="checkWeather()">Get Weather</button>
+            <pre id="weatherOutput"></pre>
+        </div>
+
+        <div class="card">
+            <h3>🌊 {t("check_flood", lang)}</h3>
+            <input id="flat" placeholder="Latitude" />
+            <input id="flon" placeholder="Longitude" />
+            <button onclick="checkFlood()">Check Flood</button>
+            <pre id="floodOutput"></pre>
+        </div>
+
+        <script>
+            async function checkWeather() {{
+                const lat = document.getElementById('lat').value;
+                const lon = document.getElementById('lon').value;
+                const res = await fetch(`/weather?lat=${{lat}}&lon=${{lon}}`);
+                const data = await res.json();
+                document.getElementById('weatherOutput').innerText = JSON.stringify(data, null, 2);
+            }}
+            async function checkFlood() {{
+                const lat = document.getElementById('flat').value;
+                const lon = document.getElementById('flon').value;
+                const res = await fetch(`/flood_indicator?lat=${{lat}}&lon=${{lon}}`);
+                const data = await res.json();
+                document.getElementById('floodOutput').innerText = JSON.stringify(data, null, 2);
+            }}
+        </script>
+    </body>
+    </html>
+    """
+
+# ====== WEATHER & FLOOD API ======
+OPENWEATHER_KEY = "YOUR_OPENWEATHER_API_KEY"
+
+@app.route("/weather")
+def get_weather():
+    lat = request.args.get("lat")
+    lon = request.args.get("lon")
+    if not lat or not lon:
+        return jsonify({"error": "lat/lon required"}), 400
+    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OPENWEATHER_KEY}&units=metric"
+    res = requests.get(url)
+    return jsonify(res.json())
+
+@app.route("/flood_indicator")
+def flood_indicator():
+    lat = request.args.get("lat")
+    lon = request.args.get("lon")
+    if not lat or not lon:
+        return jsonify({"error": "lat/lon required"}), 400
+    # Dummy simulation
+    import random
+    risk = random.choice(["low", "moderate", "high"])
+    return jsonify({"lat": lat, "lon": lon, "flood_risk": risk})
+
+if __name__ == "__main__":
+    app.run(debug=True)
     
     states_lgas = [
     {"state":"Abia","lgas":["Aba North","Aba South","Arochukwu","Bende","Ikwuano","Isiala Ngwa North","Isiala Ngwa South","Isuikwuato","Obi Ngwa","Ohafia","Osisioma","Umuahia North","Umuahia South","Umu Nneochi"]},
