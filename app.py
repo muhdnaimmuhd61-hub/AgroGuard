@@ -4,6 +4,60 @@ import sqlite3, requests, hashlib, time
 
 app = Flask(__name__)
 CORS(app)
+# =============== MULTI-LANGUAGE TRANSLATION SUPPORT ==================
+
+# Dictionary da ke ɗauke da fassarar sakonni a harsuna 4
+translations = {
+    "welcome": {
+        "en": "Welcome to Smart Farming Flood & Weather Guide API",
+        "ha": "Barka da zuwa tsarin noman zamani da ke taimaka wajen lura da ambaliyar ruwa da yanayi",
+        "yo": "Kaabo si eto oko ọlọgbọn fun ìtànkálẹ omi ati oju-ọjọ",
+        "ig": "Nnọọ na usoro ugbo amamihe maka mmiri na ihu igwe"
+    },
+    "register_success": {
+        "en": "User registered successfully!",
+        "ha": "An yi rajistar mai amfani cikin nasara!",
+        "yo": "A ti forukọsilẹ olumulo ni aṣeyọri!",
+        "ig": "A debanyere onye ọrụ nke ọma!"
+    },
+    "login_success": {
+        "en": "Login successful",
+        "ha": "Shiga cikin nasara",
+        "yo": "Wọle ni aṣeyọri",
+        "ig": "Ịbanye gara nke ọma"
+    },
+    "invalid_credentials": {
+        "en": "Invalid email or password",
+        "ha": "Imel ko kalmar sirri ba daidai ba ce",
+        "yo": "Imeeli tabi ọrọ igbaniwọle ti ko tọ",
+        "ig": "Email ma ọ bụ paswọọdụ ezighi ezi"
+    },
+    "farm_added": {
+        "en": "Farm added successfully!",
+        "ha": "An ƙara gona cikin nasara!",
+        "yo": "Oko ti fi kun ni aṣeyọri!",
+        "ig": "A tinyere ugbo nke ọma!"
+    },
+    "weather_loaded": {
+        "en": "Weather data loaded successfully.",
+        "ha": "An loda bayanan yanayi cikin nasara.",
+        "yo": "A ti gba data oju-ọjọ ni aṣeyọri.",
+        "ig": "E zigara data ihu igwe nke ọma."
+    },
+    "flood_warning": {
+        "en": "Flood risk detected in your area!",
+        "ha": "An gano haɗarin ambaliyar ruwa a yankinka!",
+        "yo": "E ri ewu ìtànkálẹ omi ni agbegbe rẹ!",
+        "ig": "Achọpụtala ihe egwu mmiri ozuzo na mpaghara gị!"
+    }
+}
+
+# Wannan function ɗin tana karɓar sakon da harshen da ake so, ta dawo da fassarar
+def t(key, lang="en"):
+    """Return translation text based on selected language."""
+    if key in translations:
+        return translations[key].get(lang, translations[key]["en"])
+    return key
 
 DB_NAME = "farming.db"
 
